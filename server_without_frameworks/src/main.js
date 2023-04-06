@@ -4,13 +4,13 @@ const http = require('http');
 const { SERVER_STATUS, SERVER_MESSAGE } = require('./common');
 
 /**
- * @typedef blogDB
+ * @typedef blog
  * @property {number} id
  * @property {string} title
  * @property {string} content
  */
 
-/** @type {blogDB[]} */
+/** @type {blog []} */
 const blogs = [
   {
     id: 1,
@@ -30,18 +30,43 @@ const blogs = [
 ];
 
 const server = http.createServer((req, res) => {
-  const POST_REG_URL = /^\/posts\/([0-9])+$/;
+  const POST_REG_URL = /^\/posts\/([0-9]+)$/;
   const postTokens = req.url && POST_REG_URL.exec(req.url);
 
   if (req.url === '/posts' && req.method === 'GET') {
+    const result = blogs.map((blog) => ({
+      title: blog.title,
+      content: blog.content,
+    }));
     res.statusCode = SERVER_STATUS.SUCCESS;
-    res.end(SERVER_MESSAGE.ALL_POST);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(result));
   } else if (req.url && POST_REG_URL.test(req.url) && req.method === 'GET') {
-    const postID = postTokens && postTokens[1];
-    console.log('postID : ', postID);
-    res.statusCode = SERVER_STATUS.SUCCESS;
-    res.end(SERVER_MESSAGE.SOME_POST);
+    const postID = Number(postTokens && postTokens[1]);
+    const findingPost = blogs.find((blog) => blog.id === postID);
+
+    if (findingPost) {
+      res.statusCode = SERVER_STATUS.SUCCESS;
+      res.setHeader('Content-type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(findingPost));
+    } else {
+      res.statusCode = SERVER_STATUS.NOT_FOUND;
+      res.end(SERVER_MESSAGE.NOT_FOUND);
+    }
   } else if (req.url === '/posts' && req.method === 'POST') {
+    req.setEncoding('utf-8');
+    req.on('data', (data) => {
+      const newBlog = JSON.parse(data);
+
+      blogs.push({
+        id: blogs.length + 1,
+        title: newBlog.title,
+        content: newBlog.content,
+      });
+
+      console.log(blogs);
+    });
+
     res.statusCode = SERVER_STATUS.SUCCESS;
     res.end(SERVER_MESSAGE.NEW_POST);
   } else {
