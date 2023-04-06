@@ -10,7 +10,7 @@
 
 ## ⭐️ Goal
 ### backend part 01
-- [ ] : JavaScript Basic
+- [x] : JavaScript Basic
 - [ ] : Node.js Basic
 - [ ] : Make RESTful API Server (without framework)
 - [ ] : Handling stream
